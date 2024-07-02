@@ -1,0 +1,21 @@
+meta {
+  name: Borrow Book
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{dev}}/api/books/:bookCode/borrow
+  body: json
+  auth: none
+}
+
+params:path {
+  bookCode: SHR-1
+}
+
+body:json {
+  {
+    "memberCode": "M001"
+  }
+}

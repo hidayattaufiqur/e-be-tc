@@ -1,0 +1,15 @@
+meta {
+  name: Get Member
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{dev}}/api/members/:code
+  body: none
+  auth: none
+}
+
+params:path {
+  code: M003
+}

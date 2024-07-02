@@ -1,0 +1,22 @@
+meta {
+  name: Update Member
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{dev}}/api/members/:code
+  body: json
+  auth: none
+}
+
+params:path {
+  code: undefined
+}
+
+body:json {
+  {
+    "code": "M007",
+    "name": "Bond"
+  }
+}
