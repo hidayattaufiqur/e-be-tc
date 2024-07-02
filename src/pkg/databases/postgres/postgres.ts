@@ -74,7 +74,8 @@ export const createTables = async () => {
       CREATE TABLE IF NOT EXISTS member (
       id SERIAL PRIMARY KEY,
       code VARCHAR(50) NOT NULL UNIQUE,
-      name VARCHAR(100) NOT NULL
+      name VARCHAR(100) NOT NULL,
+      penalized_time DATE DEFAULT NULL
       )
     `);
 
@@ -86,7 +87,18 @@ export const createTables = async () => {
       author VARCHAR(255) NOT NULL,
       stock INTEGER NOT NULL
       )
-    `); 
+    `);
+
+    query(`
+      CREATE TABLE IF NOT EXISTS member_book (
+      id SERIAL PRIMARY KEY,
+      member_id INTEGER NOT NULL,
+      book_id INTEGER NOT NULL,
+      borrowed_time DATE DEFAULT NULL,
+      FOREIGN KEY (member_id) REFERENCES member(id),
+      FOREIGN KEY (book_id) REFERENCES book(id)
+      )
+    `);
 
     await query('COMMIT');
 
