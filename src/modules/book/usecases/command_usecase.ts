@@ -9,6 +9,50 @@ export class CommandUsecase implements IUsecaseCommand {
     this.repository = new PostgresRepository();
   }
 
+  public async BorrowBook(book: IBook, memberId: number): Promise<void> {
+    try {
+      const id: number = book[0];
+      const code: string = book[1];
+
+      const data: IBook = {
+        code: book[1],
+        title: book[2],
+        author: book[3],
+        stock: book[4] - 1
+      };
+
+      await this.repository.UpdateOneBook(data, code);
+
+      await this.repository.InsertBorrowRecord(id, memberId);
+
+    } catch (e) {
+      console.error('[inventory][command_usecase][Error]: ', e);
+      throw new Error('Failed to borrow book from database');
+    }
+  }
+
+  public async ReturnBook(book: IBook, memberId: number): Promise<void> {
+    try {
+      const id: number = book[0];
+      const code: string = book[1];
+
+      const data: IBook = {
+        code: book[1],
+        title: book[2],
+        author: book[3],
+        stock: book[4] + 1
+      };
+
+      await this.repository.UpdateOneBook(data, code);
+
+      await this.repository.DeleteBorrowRecord(id, memberId);
+
+    } catch (e) {
+      console.error('[inventory][command_usecase][Error]: ', e);
+      throw new Error('Failed to return book from database');
+    }
+  }
+
   public async AddBook(book: IBook): Promise<void> {
     try {
       await this.repository.InsertOneBook(book);

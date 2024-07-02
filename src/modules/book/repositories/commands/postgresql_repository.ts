@@ -3,6 +3,24 @@ import { IPostgresRepositoryCommand } from '../../book';
 import { closeClient, query } from '../../../../pkg/databases/postgres/postgres';
 
 export class PostgresRepository implements IPostgresRepositoryCommand {
+  public async InsertBorrowRecord(bookId: number, memberId: number): Promise<void> {
+    await query(
+      'INSERT INTO member_book (member_id, book_id, borrowed_time) VALUES ($1, $2, DATE(NOW()))',
+      [memberId, bookId]
+    );
+
+    await closeClient();
+  }
+
+  public async DeleteBorrowRecord(bookId: number, memberId: number): Promise<void> {
+    await query(
+      'DELETE FROM member_book WHERE member_id = $1 AND book_id = $2',
+      [memberId, bookId]
+    );
+
+    await closeClient();
+  }
+
   public async InsertOneBook(book: IBook): Promise<void> {
     await query(
       'INSERT INTO books (code, title, author, stock) VALUES ($1, $2, $3, $4)',

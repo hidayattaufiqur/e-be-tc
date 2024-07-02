@@ -20,3 +20,11 @@ export interface IUpsertBook {
   author: string;
   stock: number;
 }
+
+
+export interface IBorrowRecord {
+  bookId: number;
+  memberId: number;
+  borrowedTime: Date;
+  moreThanSevenDays: boolean;
+}

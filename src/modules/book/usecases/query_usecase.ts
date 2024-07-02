@@ -1,4 +1,4 @@
-import { IBook } from '../models/book';
+import { IBook, IBorrowRecord } from '../models/book';
 import { IUsecaseQuery } from '../book';
 import { PostgresRepository } from '../repositories/queries/postgresql_repository';
 
@@ -9,16 +9,38 @@ export class QueryUsecase implements IUsecaseQuery {
     this.repository = new PostgresRepository();
   }
 
+  public async GetBorrowRecord(bookId: number, memberId: number): Promise<IBorrowRecord> {
+    try {
+      const book = await this.repository.FindBorrowRecord(bookId, memberId);
+
+      if (!book) {
+        return;
+      }
+
+      const data: IBorrowRecord = {
+        bookId: book[0],
+        memberId: book[1],
+        borrowedTime: book[2],
+        moreThanSevenDays: book[3]
+      };
+
+      return data;
+    } catch (e) {
+      console.error('[inventory][query_usecase][Error]: ', e);
+      throw new Error('Failed to get book from database');
+    }
+  }
+
   public async GetBooks(): Promise<IBook[]> {
     try {
       const books = await this.repository.FindAllBooks();
 
       const data = books.map((book: IBook) => {
         return {
-          code: book[0],
-          title: book[1],
-          author: book[2],
-          stock: book[3]
+          code: book[1],
+          title: book[2],
+          author: book[3],
+          stock: book[4]
         };
       });
 
@@ -39,10 +61,10 @@ export class QueryUsecase implements IUsecaseQuery {
       }
 
       const data: IBook = {
-        code: book[0],
-        title: book[1],
-        author: book[2],
-        stock: book[3]
+        code: book[1],
+        title: book[2],
+        author: book[3],
+        stock: book[4]
       };
 
       return data;

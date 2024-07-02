@@ -4,13 +4,13 @@ import { IUsecaseQuery, IUsecaseCommand } from '../book';
 import { IBook } from '../models/book';
 
 export default class HttpHandler {
-  private usercaseQuery: IUsecaseQuery;
-  private usercaseCommand: IUsecaseCommand;
+  private usecaseQuery: IUsecaseQuery;
+  private usecaseCommand: IUsecaseCommand;
   private router: Router;
 
   constructor(usercaseQuery: IUsecaseQuery, usercaseCommand: IUsecaseCommand) {
-    this.usercaseQuery = usercaseQuery;
-    this.usercaseCommand = usercaseCommand;
+    this.usecaseQuery = usercaseQuery;
+    this.usecaseCommand = usercaseCommand;
     this.router = Router();
   };
 
@@ -31,19 +31,20 @@ export default class HttpHandler {
 
       if (!code) {
         response.status(StatusCodes.BAD_REQUEST).send({ message: 'Code is required', code: StatusCodes.BAD_REQUEST });
-        return;
       }
 
       // check if book exists
-      const data = await this.usercaseQuery.GetBook(code);
+      const data = await this.usecaseQuery.GetBook(code);
 
       if (!data) {
         console.error('[book][http_handler][Error]: Book not found');
         response.status(StatusCodes.NOT_FOUND).send({ message: 'Book not found', code: StatusCodes.NOT_FOUND });
-        return;
       }
 
-      await this.usercaseCommand.BorrowBook(code);
+      // TODO: implement member and check if they are penalized
+
+      // TODO: implement member and get the member id
+      await this.usecaseCommand.BorrowBook(data, memberId);
 
       response.status(StatusCodes.OK).send({ message: 'Book borrowed successfully', code: StatusCodes.OK });
     } catch (error) {
@@ -51,14 +52,43 @@ export default class HttpHandler {
     }
   }
 
+  async returnBook(request: Request, response: Response): Promise<void> {
+    try {
+      const { bookId } = request.params;
+
+      if (!bookId) {
+        response.status(StatusCodes.BAD_REQUEST).send({ message: 'Book ID is required', code: StatusCodes.BAD_REQUEST });
+      }
+
+      const data = await this.usecaseQuery.GetBorrowRecord(parseInt(bookId), memberId);
+
+      if (!data) {
+        console.error('[book][http_handler][Error]: Member has not borrowed the book');
+        response.status(StatusCodes.NOT_FOUND).send({ message: 'Member has not borrowed the book', code: StatusCodes.NOT_FOUND });
+      }
+
+      if (data[3]) {
+        console.error('[book][http_handler][Error]: Member will be penalized in 3 days due to the late return');
+        // TODO: implement member and update member's isPenalized field
+      }
+
+      // TODO: implement member and get the member id
+      await this.usecaseCommand.ReturnBook(data, memberId);
+
+      response.status(StatusCodes.OK).send({ message: 'Book returned successfully', code: StatusCodes.OK });
+    } catch (error) {
+      response.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: 'Internal server error', code: StatusCodes.INTERNAL_SERVER_ERROR });
+    }
+  }
+
   async getBook(request: Request, response: Response): Promise<void> {
     try {
-      const book = await this.usercaseQuery.GetBook(request.params.code);
+      const book = await this.usecaseQuery.GetBook(request.params.code);
 
       if (!book) {
         console.error('[book][http_handler][Error]: Book not found');
         response.status(StatusCodes.NOT_FOUND).send({ message: 'Book not found', code: StatusCodes.NOT_FOUND });
-        return;
+        
       }
 
       response.status(StatusCodes.OK).send({ message: 'Book retrieved successfully', code: StatusCodes.OK, data: book });
@@ -69,7 +99,7 @@ export default class HttpHandler {
 
   async getBooks(_request: Request, response: Response): Promise<void> {
     try {
-      const books = await this.usercaseQuery.GetBooks();
+      const books = await this.usecaseQuery.GetBooks();
 
       response.status(StatusCodes.OK).send({ message: 'Books retrieved successfully', code: StatusCodes.OK, data: books });
     } catch (error) {
@@ -82,15 +112,14 @@ export default class HttpHandler {
       const book: IBook = request.body;
 
       // check if book already exists
-      const data = await this.usercaseQuery.GetBook(book.code);
+      const data = await this.usecaseQuery.GetBook(book.code);
 
       if (data) {
         console.error('[book][http_handler][Error]: Book already exists');
         response.status(StatusCodes.BAD_REQUEST).send({ message: 'Book already exists', code: StatusCodes.BAD_REQUEST });
-        return;
       }
 
-      await this.usercaseCommand.AddBook(book);
+      await this.usecaseCommand.AddBook(book);
 
       response.status(StatusCodes.OK).send({ message: 'Book added successfully', code: StatusCodes.OK });
     } catch (error) {
@@ -107,7 +136,7 @@ export default class HttpHandler {
       }
 
       // check if book exists
-      const data = await this.usercaseQuery.GetBook(code);
+      const data = await this.usecaseQuery.GetBook(code);
 
       if (!data) {
         console.error('[book][http_handler][Error]: Book not found');
@@ -116,7 +145,7 @@ export default class HttpHandler {
 
       const book: IBook = request.body;
 
-      await this.usercaseCommand.UpdateBook(book, code);
+      await this.usecaseCommand.UpdateBook(book, code);
 
       response.status(StatusCodes.OK).send({ message: 'Book updated successfully', code: StatusCodes.OK });
     } catch (error) {
@@ -130,19 +159,17 @@ export default class HttpHandler {
 
       if (!code) {
         response.status(StatusCodes.BAD_REQUEST).send({ message: 'Code is required', code: StatusCodes.BAD_REQUEST });
-        return;
       }
 
       // check if book exists
-      const data = await this.usercaseQuery.GetBook(code);
+      const data = await this.usecaseQuery.GetBook(code);
 
       if (!data) {
         console.error('[book][http_handler][Error]: Book not found');
         response.status(StatusCodes.NOT_FOUND).send({ message: 'Book not found', code: StatusCodes.NOT_FOUND });
-        return;
       }
 
-      await this.usercaseCommand.RemoveBook(code);
+      await this.usecaseCommand.RemoveBook(code);
 
       response.status(StatusCodes.OK).send({ message: 'Book removed successfully', code: StatusCodes.OK });
     } catch (error) {
