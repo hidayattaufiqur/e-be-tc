@@ -7,8 +7,10 @@ export interface IUsecaseQuery {
 
 export interface IUsecaseCommand {
   AddBook(book: IBook): Promise<void>;
-  UpdateBook(book: IBook): Promise<void>;
-  RemoveBook(book: IBook): Promise<void>;
+  UpdateBook(book: IBook, code: string): Promise<void>;
+  RemoveBook(code: string): Promise<void>;
+
+  BorrowBook(code: string): Promise<void>;
 }
 
 export interface IPostgresRepositoryQuery {
@@ -18,6 +20,6 @@ export interface IPostgresRepositoryQuery {
 
 export interface IPostgresRepositoryCommand {
   InsertOneBook(book: IBook): Promise<void>;
-  UpdateOneBook(book: IBook): Promise<void>;
-  DeleteOneBook(book: IBook): Promise<void>;
+  UpdateOneBook(book: IBook, code: string): Promise<void>;
+  DeleteOneBook(code: string): Promise<void>;
 }

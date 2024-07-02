@@ -14,3 +14,9 @@ export interface IBook {
   author: string;
   stock: number;
 }
+
+export interface IUpsertBook {
+  title: string;
+  author: string;
+  stock: number;
+}
