@@ -1,0 +1,20 @@
+meta {
+  name: Add Book
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{dev}}/api/books/
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "code": "cool",
+      "title": "very cool-11",
+      "author": "Joshua",
+      "stock": 10
+    }
+}

@@ -1,0 +1,24 @@
+meta {
+  name: Remove Book
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{dev}}/api/books/:code
+  body: json
+  auth: none
+}
+
+params:path {
+  code: coolaa
+}
+
+body:json {
+  {
+      "code": "cool",
+      "title": "very cool-11",
+      "author": "Joshua",
+      "stock": 10
+    }
+}

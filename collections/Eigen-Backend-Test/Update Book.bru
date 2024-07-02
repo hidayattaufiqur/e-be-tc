@@ -1,0 +1,24 @@
+meta {
+  name: Update Book
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{dev}}/api/books/:code
+  body: json
+  auth: none
+}
+
+params:path {
+  code: 0
+}
+
+body:json {
+  {
+      "code": "HOB-11",
+      "title": "The Hobbit",
+      "author": "J.R.R. Tolkien",
+      "stock": 2
+    }
+}
