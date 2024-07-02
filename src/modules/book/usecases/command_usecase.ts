@@ -11,17 +11,17 @@ export class CommandUsecase implements IUsecaseCommand {
 
   public async BorrowBook(book: IBook, memberId: number): Promise<void> {
     try {
-      const id: number = book[0];
-      const code: string = book[1];
+      const id: number = book.id;
+      const code: string = book.code;
 
       const data: IBook = {
-        code: book[1],
-        title: book[2],
-        author: book[3],
-        stock: book[4] - 1
+        code: book.code,
+        title: book.title,
+        author: book.author,
+        stock: book.stock - 1
       };
 
-      await this.repository.UpdateOneBook(data, code);
+      await this.repository.UpdateOneBook(data, code); // subtract 1 from stock
 
       await this.repository.InsertBorrowRecord(id, memberId);
 

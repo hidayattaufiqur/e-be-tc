@@ -6,6 +6,9 @@ import * as Postgres from './pkg/databases/postgres/postgres';
 import bookHandler from './modules/book/handlers/http_handler';
 import { QueryUsecase as BookQueryUsecase } from './modules/book/usecases/query_usecase';
 import { CommandUsecase as BookCommandUsecase } from './modules/book/usecases/command_usecase';
+import memberHandler from './modules/member/handlers/http_handler';
+import { QueryUsecase as MemberQueryUsecase } from './modules/member/usecases/query_usecase';
+import { CommandUsecase as MemberCommandUsecase } from './modules/member/usecases/command_usecase';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './pkg/swagger/swagger';
 
@@ -58,9 +61,12 @@ export default class App {
     // instantiate usecases
     const bookQueryUsecase = new BookQueryUsecase();
     const bookCommandUsecase = new BookCommandUsecase();
+    const memberQueryUsecase = new MemberQueryUsecase();
+    const memberCommandUsecase = new MemberCommandUsecase();
 
     // inject usecases into handler
-    this.express.use('/api/', new bookHandler(bookQueryUsecase, bookCommandUsecase).init());
+    this.express.use('/api/', new memberHandler(memberQueryUsecase, memberCommandUsecase, bookQueryUsecase).init());
+    this.express.use('/api/', new bookHandler(bookQueryUsecase, bookCommandUsecase, memberQueryUsecase, memberCommandUsecase).init());
   }
 }
 

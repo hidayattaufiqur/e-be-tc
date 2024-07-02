@@ -3,6 +3,32 @@ import { IPostgresRepositoryQuery } from '../../book';
 import { closeClient, query } from '../../../../pkg/databases/postgres/postgres';
 
 export class PostgresRepository implements IPostgresRepositoryQuery {
+  public async FindBookById(id: number): Promise<IBook> {
+    const result = await query<IBook>(
+      'SELECT * FROM books WHERE id = $1',
+      [id]
+    );
+
+    await closeClient();
+
+    return result[0];
+  }
+
+  public async FindBorrowRecords(memberId: number): Promise<IBorrowRecord[]> {
+    const result = await query<IBorrowRecord[]>(
+      `SELECT
+          book_id, member_id, borrowed_time, (CURRENT_TIMESTAMP - borrowed_time > INTERVAL '7 days') AS moreThanSevenDays
+       FROM
+          member_book WHERE member_id = $1
+      `,
+      [memberId]
+    );
+
+    await closeClient();
+
+    return result;
+  }
+
   public async FindBorrowRecord(bookId: number, memberId: number): Promise<IBorrowRecord> {
     const result = await query<IBook>(
       ` SELECT 
@@ -20,7 +46,7 @@ export class PostgresRepository implements IPostgresRepositoryQuery {
 
   public async FindAllBooks(): Promise<IBook[]> {
     const result = await query<IBook[]>(
-      'SELECT * FROM books'
+      'SELECT * FROM books WHERE stock > 0' // only return books that are in stock
     );
 
     await closeClient();

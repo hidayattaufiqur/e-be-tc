@@ -3,8 +3,10 @@ import { IBook, IBorrowRecord } from './models/book';
 export interface IUsecaseQuery {
   GetBooks(): Promise<IBook[]>;
   GetBook(code: string): Promise<IBook>;
+  GetBookById(id: number): Promise<IBook>;
 
   GetBorrowRecord(bookId: number, memberId: number): Promise<IBorrowRecord>;
+  GetBorrowRecords(memberId: number): Promise<IBorrowRecord[]>;
 }
 
 export interface IUsecaseCommand {
@@ -17,10 +19,12 @@ export interface IUsecaseCommand {
 }
 
 export interface IPostgresRepositoryQuery {
+  FindBookById(id: number): Promise<IBook>;
   FindAllBooks(): Promise<IBook[]>;
   FindBookByCode(code: string): Promise<IBook>;
 
   FindBorrowRecord(bookId: number, memberId: number): Promise<IBorrowRecord>;
+  FindBorrowRecords(memberId: number): Promise<IBorrowRecord[]>;
 }
 
 export interface IPostgresRepositoryCommand {

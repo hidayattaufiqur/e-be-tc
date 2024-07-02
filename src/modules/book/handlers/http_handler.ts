@@ -1,50 +1,85 @@
 import { Request, Response, Router } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { IUsecaseQuery, IUsecaseCommand } from '../book';
-import { IBook } from '../models/book';
+import { IUsecaseQuery as IUsecaseMemberQuery, IUsecaseCommand as IUsecaseMemberCommand } from '../../member/member';
+import { IBook, IBorrowRecord } from '../models/book';
 
 export default class HttpHandler {
   private usecaseQuery: IUsecaseQuery;
   private usecaseCommand: IUsecaseCommand;
+  private usecaseMemberQuery: IUsecaseMemberQuery;
+  private usecaseMemberCommand: IUsecaseMemberCommand;
+
   private router: Router;
 
-  constructor(usercaseQuery: IUsecaseQuery, usercaseCommand: IUsecaseCommand) {
-    this.usecaseQuery = usercaseQuery;
-    this.usecaseCommand = usercaseCommand;
+  constructor(usecaseQuery: IUsecaseQuery, usecaseCommand: IUsecaseCommand, usecaseMemberQuery: IUsecaseMemberQuery, usecaseMemberCommand: IUsecaseMemberCommand) {
+    this.usecaseQuery = usecaseQuery;
+    this.usecaseCommand = usecaseCommand;
+    this.usecaseMemberQuery = usecaseMemberQuery;
+    this.usecaseMemberCommand = usecaseMemberCommand;
+
     this.router = Router();
   };
 
   public init(): Router {
     this.router.get('/books/:code', this.getBook.bind(this));
     this.router.get('/books', this.getBooks.bind(this));
-
     this.router.post('/books', this.addBook.bind(this));
     this.router.put('/books/:code', this.updateBook.bind(this));
     this.router.delete('/books/:code', this.removeBook.bind(this));
+
+    this.router.post('/books/:bookCode/borrow', this.borrowBook.bind(this));
+    this.router.post('/books/:code/return', this.returnBook.bind(this));
 
     return this.router;
   };
 
   async borrowBook(request: Request, response: Response): Promise<void> {
     try {
-      const { code } = request.params;
+      const { bookCode } = request.params;
+      const { memberCode } = request.body;
 
-      if (!code) {
+      if (!memberCode || !bookCode) {
         response.status(StatusCodes.BAD_REQUEST).send({ message: 'Code is required', code: StatusCodes.BAD_REQUEST });
+        return;
       }
 
       // check if book exists
-      const data = await this.usecaseQuery.GetBook(code);
+      const data = await this.usecaseQuery.GetBook(bookCode);
 
       if (!data) {
-        console.error('[book][http_handler][Error]: Book not found');
-        response.status(StatusCodes.NOT_FOUND).send({ message: 'Book not found', code: StatusCodes.NOT_FOUND });
+        console.error('[book][http_handler][Error]: Stock is not available');
+        response.status(StatusCodes.NOT_FOUND).send({ message: 'Stock is not available', code: StatusCodes.NOT_FOUND });
+        return;
       }
 
-      // TODO: implement member and check if they are penalized
+      const memberData = await this.usecaseMemberQuery.GetMember(memberCode);
+      const isPenalized: Date = memberData.penalized_at;
 
-      // TODO: implement member and get the member id
-      await this.usecaseCommand.BorrowBook(data, memberId);
+      if (isPenalized) { // check if member is penalized and if so, check if the penalized date is less than 3 days ago
+        const penalizedDate = new Date(isPenalized);
+        const currentDate = new Date();
+        const timeDifference = currentDate.getTime() - penalizedDate.getTime();
+        const daysDifference = timeDifference / (1000 * 3600 * 24); // convert milliseconds to days
+
+        if (daysDifference < 3) {
+          console.error('[book][http_handler][Error]: Member is penalized.');
+          response.status(StatusCodes.BAD_REQUEST).send({ message: 'Member is penalized.', code: StatusCodes.BAD_REQUEST });
+          return;
+        };
+      };
+
+      const memberId = memberData.id;
+
+      const borrowRecords: IBorrowRecord[] = await this.usecaseQuery.GetBorrowRecords(memberId);
+
+      if (borrowRecords.length > 1) {
+        console.error('[book][http_handler][Error]: Member has more than one books borrowed.');
+        response.status(StatusCodes.BAD_REQUEST).send({ message: 'Member has more than one books borrowed.', code: StatusCodes.BAD_REQUEST });
+        return;
+      }
+
+      await this.usecaseCommand.BorrowBook(data, memberId); // only borrow book if all conditions are met
 
       response.status(StatusCodes.OK).send({ message: 'Book borrowed successfully', code: StatusCodes.OK });
     } catch (error) {
@@ -54,26 +89,31 @@ export default class HttpHandler {
 
   async returnBook(request: Request, response: Response): Promise<void> {
     try {
-      const { bookId } = request.params;
+      const { memberId, bookId } = request.params;
 
-      if (!bookId) {
-        response.status(StatusCodes.BAD_REQUEST).send({ message: 'Book ID is required', code: StatusCodes.BAD_REQUEST });
+      if (!bookId || !memberId) {
+        response.status(StatusCodes.BAD_REQUEST).send({ message: 'Book and member IDs are required', code: StatusCodes.BAD_REQUEST });
+        return;
       }
 
-      const data = await this.usecaseQuery.GetBorrowRecord(parseInt(bookId), memberId);
+      const data = await this.usecaseQuery.GetBorrowRecord(parseInt(bookId), parseInt(memberId));
 
       if (!data) {
         console.error('[book][http_handler][Error]: Member has not borrowed the book');
         response.status(StatusCodes.NOT_FOUND).send({ message: 'Member has not borrowed the book', code: StatusCodes.NOT_FOUND });
+        return;
       }
 
       if (data[3]) {
         console.error('[book][http_handler][Error]: Member will be penalized in 3 days due to the late return');
-        // TODO: implement member and update member's isPenalized field
+        let memberData = await this.usecaseMemberQuery.GetMemberById(parseInt(memberId));
+        memberData[3] = new Date();
+
+        await this.usecaseMemberCommand.UpdateMember(memberData, memberData[0]);
       }
 
-      // TODO: implement member and get the member id
-      await this.usecaseCommand.ReturnBook(data, memberId);
+      const bookData = await this.usecaseQuery.GetBookById(parseInt(bookId));
+      await this.usecaseCommand.ReturnBook(bookData, parseInt(memberId));
 
       response.status(StatusCodes.OK).send({ message: 'Book returned successfully', code: StatusCodes.OK });
     } catch (error) {
@@ -88,7 +128,7 @@ export default class HttpHandler {
       if (!book) {
         console.error('[book][http_handler][Error]: Book not found');
         response.status(StatusCodes.NOT_FOUND).send({ message: 'Book not found', code: StatusCodes.NOT_FOUND });
-        
+        return;
       }
 
       response.status(StatusCodes.OK).send({ message: 'Book retrieved successfully', code: StatusCodes.OK, data: book });
@@ -117,6 +157,7 @@ export default class HttpHandler {
       if (data) {
         console.error('[book][http_handler][Error]: Book already exists');
         response.status(StatusCodes.BAD_REQUEST).send({ message: 'Book already exists', code: StatusCodes.BAD_REQUEST });
+        return;
       }
 
       await this.usecaseCommand.AddBook(book);
@@ -133,6 +174,7 @@ export default class HttpHandler {
 
       if (!code) {
         response.status(StatusCodes.BAD_REQUEST).send({ message: 'Code is required', code: StatusCodes.BAD_REQUEST });
+        return;
       }
 
       // check if book exists
@@ -141,6 +183,7 @@ export default class HttpHandler {
       if (!data) {
         console.error('[book][http_handler][Error]: Book not found');
         response.status(StatusCodes.NOT_FOUND).send({ message: 'Book not found', code: StatusCodes.NOT_FOUND });
+        return;
       }
 
       const book: IBook = request.body;

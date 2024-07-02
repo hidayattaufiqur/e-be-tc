@@ -71,16 +71,16 @@ export const createTables = async () => {
   try {
     query('BEGIN'); 
     query(`
-      CREATE TABLE IF NOT EXISTS member (
+      CREATE TABLE IF NOT EXISTS members (
       id SERIAL PRIMARY KEY,
       code VARCHAR(50) NOT NULL UNIQUE,
       name VARCHAR(100) NOT NULL,
-      penalized_time DATE DEFAULT NULL
+      penalized_at DATE DEFAULT NULL
       )
     `);
 
     query(`
-      CREATE TABLE IF NOT EXISTS book (
+      CREATE TABLE IF NOT EXISTS books (
       id SERIAL PRIMARY KEY,
       code VARCHAR(50) NOT NULL UNIQUE,
       title VARCHAR(255) NOT NULL,
@@ -95,8 +95,8 @@ export const createTables = async () => {
       member_id INTEGER NOT NULL,
       book_id INTEGER NOT NULL,
       borrowed_time DATE DEFAULT NULL,
-      FOREIGN KEY (member_id) REFERENCES member(id),
-      FOREIGN KEY (book_id) REFERENCES book(id)
+      FOREIGN KEY (member_id) REFERENCES members(id),
+      FOREIGN KEY (book_id) REFERENCES books(id)
       )
     `);
 
