@@ -4,13 +4,14 @@ import helmet from 'helmet';
 import cors from 'cors';
 import * as Postgres from './pkg/databases/postgres/postgres';
 import bookHandler from './modules/book/handlers/http_handler';
-import { IUsecaseQuery } from './modules/book/book';
 import { QueryUsecase as BookQueryUsecase } from './modules/book/usecases/query_usecase';
+import { CommandUsecase as BookCommandUsecase } from './modules/book/usecases/command_usecase';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './pkg/swagger/swagger';
 
 export default class App { 
   public express: express.Application; 
   public httpServer: http.Server;
-  private usercaseQuery: IUsecaseQuery;
 
   public async init(): Promise<void> {
     this.express = express();
@@ -37,14 +38,29 @@ export default class App {
   }
 
   private routes(): void {
+  /**
+   * @openapi
+   * /:
+   *   get:
+   *     description: Welcome to swagger-jsdoc!
+   *     responses:
+   *       200:
+   *         description: Returns a mysterious string.
+   */
     this.express.get('/', (_req, res) => {
       res.send('Hello World!');
     });
+ 
+    // setup Swagger
+    this.express.use('/api-docs', swaggerUi.serve)
+    this.express.get('/api-docs', swaggerUi.setup(swaggerSpec));
 
+    // instantiate usecases
     const bookQueryUsecase = new BookQueryUsecase();
-    this.express.use('/api/', new bookHandler(bookQueryUsecase).init());
+    const bookCommandUsecase = new BookCommandUsecase();
 
-    // this.express.use('/api', registerRoutes);
+    // inject usecases into handler
+    this.express.use('/api/', new bookHandler(bookQueryUsecase, bookCommandUsecase).init());
   }
 }
 
