@@ -1,6 +1,6 @@
 #!/run/current-system/sw/bin/zsh
 echo "changing dir..."
-cd Fun/Projects/e-bc-tc
+cd Fun/Projects/e-be-tc
 
 echo "pulling from repo..."
 git add .
