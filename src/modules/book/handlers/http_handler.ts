@@ -100,16 +100,9 @@ export default class HttpHandler {
         return;
       }
 
-      // check if book exists
+      // get book id
       const bookData: IBook = await this.usecaseQuery.GetBook(bookCode);
       const bookId = bookData.id;
-      console.log(bookId);
-
-      if (!bookData) {
-        console.error('[book][http_handler][Error]: Stock is not available');
-        response.status(StatusCodes.NOT_FOUND).send({ message: 'Stock is not available', code: StatusCodes.NOT_FOUND });
-        return;
-      }
 
       const memberData: IMember = await this.usecaseMemberQuery.GetMember(memberCode);
       const memberId = memberData.id;
