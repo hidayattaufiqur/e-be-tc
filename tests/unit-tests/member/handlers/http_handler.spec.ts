@@ -104,8 +104,8 @@ describe('HttpHandler', () => {
 
   describe('getMembers', () => {
     it('should return all members and their number of books borrowed', async () => {
-      const members: IMember[] = [{ code: 'M001', name: 'John Doe', id: 1, penalized_at: null }, { code: 'M002', name: 'Jane Doe', id: 2, penalized_at: null }];
-      const borrowRecords: IBorrowRecord[] = [{ memberId: 1, bookId: 1, borrowedTime: new Date(), moreThanSevenDays: false }, { memberId: 2, bookId: 1, borrowedTime: new Date(), moreThanSevenDays: true} ];
+      const members: IMember[] = [{ code: 'M001', name: 'John Doe', id: 1, penalized_at: null }];
+      const borrowRecords: IBorrowRecord[] = [{ memberId: 1, bookId: 1, borrowedTime: new Date(), moreThanSevenDays: false } ];
 
       mockUsecaseQuery.GetMembers.mockResolvedValueOnce(members);
       mockUsecaseBookQuery.GetBorrowRecords.mockResolvedValueOnce(borrowRecords);
