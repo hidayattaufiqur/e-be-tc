@@ -46,6 +46,16 @@ export class PostgresRepository implements IPostgresRepositoryQuery {
 
   public async FindAllBooks(): Promise<IBook[]> {
     const result = await query<IBook[]>(
+      'SELECT * FROM books'
+    );
+
+    await closeClient();
+
+    return result;
+  }
+
+  public async FindInStockBooks(): Promise<IBook[]> {
+    const result = await query<IBook[]>(
       'SELECT * FROM books WHERE stock > 0' // only return books that are in stock
     );
 
@@ -56,7 +66,7 @@ export class PostgresRepository implements IPostgresRepositoryQuery {
 
   public async FindBookByCode(code: string): Promise<IBook> {
     const result = await query<IBook>(
-      'SELECT * FROM books WHERE code = $1 AND stock > 0', // only return books that are in stock
+      'SELECT * FROM books WHERE code = $1',
       [code]
     );
 

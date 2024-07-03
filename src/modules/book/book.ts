@@ -2,6 +2,7 @@ import { IBook, IBorrowRecord } from './models/book';
 
 export interface IUsecaseQuery {
   GetBooks(): Promise<IBook[]>;
+  GetInStockBooks(): Promise<IBook[]>;
   GetBook(code: string): Promise<IBook>;
   GetBookById(id: number): Promise<IBook>;
 
@@ -21,6 +22,7 @@ export interface IUsecaseCommand {
 export interface IPostgresRepositoryQuery {
   FindBookById(id: number): Promise<IBook>;
   FindAllBooks(): Promise<IBook[]>;
+  FindInStockBooks(): Promise<IBook[]>;
   FindBookByCode(code: string): Promise<IBook>;
 
   FindBorrowRecord(bookId: number, memberId: number): Promise<IBorrowRecord>;

@@ -40,6 +40,19 @@ export class PostgresRepository implements IPostgresRepositoryCommand {
   }
 
   public async DeleteOneBook(code: string): Promise<void> {
+    const bookData = await query('SELECT id FROM books WHERE code = $1', [code]); // get book row by code
+    const bookId = bookData[0]; // need to extract book id
+
+    const result = await query(
+      'SELECT COUNT(*) FROM member_book WHERE book_id = $1', // make sure book is not currently borrowed
+      [bookId]);
+
+    if (result[0] > 0) {
+      console.error('[book][postgresql_repository][Error]: Book is being borrowed');
+      await closeClient();
+      throw new Error('Book is being borrowed');
+    }
+
     await query(
       'DELETE FROM books WHERE code = $1',
       [code]

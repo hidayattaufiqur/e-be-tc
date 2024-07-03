@@ -23,14 +23,16 @@ export default class HttpHandler {
   };
 
   public init(): Router {
+    this.router.get('/books/in-stock', this.getInStockBooks.bind(this));
     this.router.get('/books/:code', this.getBook.bind(this));
     this.router.get('/books', this.getBooks.bind(this));
+
     this.router.post('/books', this.addBook.bind(this));
     this.router.put('/books/:code', this.updateBook.bind(this));
     this.router.delete('/books/:code', this.removeBook.bind(this));
 
     this.router.post('/books/:bookCode/borrow', this.borrowBook.bind(this));
-    this.router.post('/books/:code/return', this.returnBook.bind(this));
+    this.router.post('/books/:bookCode/return', this.returnBook.bind(this));
 
     return this.router;
   };
@@ -48,7 +50,7 @@ export default class HttpHandler {
       // check if book exists
       const data: IBook = await this.usecaseQuery.GetBook(bookCode);
 
-      if (!data) {
+      if (!data || data.stock < 1) {
         console.error('[book][http_handler][Error]: Stock is not available');
         response.status(StatusCodes.NOT_FOUND).send({ message: 'Stock is not available', code: StatusCodes.NOT_FOUND });
         return;
@@ -90,31 +92,44 @@ export default class HttpHandler {
 
   async returnBook(request: Request, response: Response): Promise<void> {
     try {
-      const { memberId, bookId } = request.params;
+      const { bookCode } = request.params;
+      const { memberCode } = request.body;
 
-      if (!bookId || !memberId) {
-        response.status(StatusCodes.BAD_REQUEST).send({ message: 'Book and member IDs are required', code: StatusCodes.BAD_REQUEST });
+      if (!memberCode || !bookCode) {
+        response.status(StatusCodes.BAD_REQUEST).send({ message: 'Code is required', code: StatusCodes.BAD_REQUEST });
         return;
       }
 
-      const data: IBorrowRecord = await this.usecaseQuery.GetBorrowRecord(parseInt(bookId), parseInt(memberId));
+      // check if book exists
+      const bookData: IBook = await this.usecaseQuery.GetBook(bookCode);
+      const bookId = bookData.id;
+      console.log(bookId);
 
-      if (!data) {
+      if (!bookData) {
+        console.error('[book][http_handler][Error]: Stock is not available');
+        response.status(StatusCodes.NOT_FOUND).send({ message: 'Stock is not available', code: StatusCodes.NOT_FOUND });
+        return;
+      }
+
+      const memberData: IMember = await this.usecaseMemberQuery.GetMember(memberCode);
+      const memberId = memberData.id;
+
+      const borrowRecordData: IBorrowRecord = await this.usecaseQuery.GetBorrowRecord(bookId, memberId);
+
+      if (!borrowRecordData) {
         console.error('[book][http_handler][Error]: Member has not borrowed the book');
         response.status(StatusCodes.NOT_FOUND).send({ message: 'Member has not borrowed the book', code: StatusCodes.NOT_FOUND });
         return;
       }
 
-      if (data.moreThanSevenDays) {
+      if (borrowRecordData.moreThanSevenDays) {
         console.error('[book][http_handler][Error]: Member will be penalized in 3 days due to the late return');
-        let memberData: IMember = await this.usecaseMemberQuery.GetMemberById(parseInt(memberId));
         memberData.penalized_at = new Date();
 
         await this.usecaseMemberCommand.UpdateMember(memberData, memberData.code);
       }
 
-      const bookData = await this.usecaseQuery.GetBookById(parseInt(bookId));
-      await this.usecaseCommand.ReturnBook(bookData, parseInt(memberId));
+      await this.usecaseCommand.ReturnBook(bookData, memberId);
 
       response.status(StatusCodes.OK).send({ message: 'Book returned successfully', code: StatusCodes.OK });
     } catch (error) {
@@ -141,6 +156,16 @@ export default class HttpHandler {
   async getBooks(_request: Request, response: Response): Promise<void> {
     try {
       const books: IBook[] = await this.usecaseQuery.GetBooks();
+
+      response.status(StatusCodes.OK).send({ message: 'Books retrieved successfully', code: StatusCodes.OK, data: books });
+    } catch (error) {
+      response.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: 'Internal server error', code: StatusCodes.INTERNAL_SERVER_ERROR });
+    }
+  }
+
+  async getInStockBooks(_request: Request, response: Response): Promise<void> {
+    try {
+      const books: IBook[] = await this.usecaseQuery.GetInStockBooks();
 
       response.status(StatusCodes.OK).send({ message: 'Books retrieved successfully', code: StatusCodes.OK, data: books });
     } catch (error) {

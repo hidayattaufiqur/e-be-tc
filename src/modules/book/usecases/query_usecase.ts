@@ -15,6 +15,7 @@ export class QueryUsecase implements IUsecaseQuery {
       const book = await repository.FindBookById(id);
 
       if (!book) {
+        console.error('[book][query_usecase][Error]: Book not found');
         return;
       }
 
@@ -57,6 +58,7 @@ export class QueryUsecase implements IUsecaseQuery {
       const book = await this.repository.FindBorrowRecord(bookId, memberId);
 
       if (!book) {
+        console.error('[book][query_usecase][Error]: Book not found');
         return;
       }
 
@@ -95,12 +97,34 @@ export class QueryUsecase implements IUsecaseQuery {
     }
   }
 
+  public async GetInStockBooks(): Promise<IBook[]> {
+    try {
+      const books = await this.repository.FindInStockBooks();
+
+      const data = books.map((book: IBook) => {
+        return {
+          id: book[0],
+          code: book[1],
+          title: book[2],
+          author: book[3],
+          stock: book[4]
+        };
+      });
+
+      return data;
+    } catch (e) {
+      console.error('[inventory][query_usecase][Error]: ', e);
+      throw new Error('Failed to get books from database');
+    }
+  }
+
   public async GetBook(code: string): Promise<IBook> {
     try {
       const repository = new PostgresRepository();
       const book = await repository.FindBookByCode(code);
 
       if (!book) {
+        console.error('[book][query_usecase][Error]: Book not found');
         return;
       }
 
