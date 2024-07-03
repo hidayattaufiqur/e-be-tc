@@ -18,3 +18,8 @@
 - Member check
     - [x]  Shows all existing members
     - [x]  The number of books being borrowed by each member
+
+- Others
+    - [ ] add more tests
+    - [ ] add more swagger docs
+    - [ ] deploy 
