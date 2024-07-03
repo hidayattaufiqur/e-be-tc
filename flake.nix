@@ -20,6 +20,16 @@
       devShells = forEachSupportedSystem ({ pkgs }: {
         default = pkgs.mkShell {
           packages = with pkgs; [ node2nix nodejs pnpm yarn ];
+
+          shellHook = with pkgs; ''
+            echo "Entering devShell..."
+            echo "Installing packages..."
+            pnpm install 
+
+            echo "Done!"
+
+              echo "Welcome! this environment is using node version: `${nodejs}/bin/node --version` and pnpm version: `${pnpm}/bin/pnpm --version`"
+          '';
         };
       });
     };
