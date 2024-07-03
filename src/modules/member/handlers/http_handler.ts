@@ -32,11 +32,12 @@ export default class HttpHandler {
   async getMember(request: Request, response: Response): Promise<void> {
     try {
       const code = request.params.code;
-      const member = await this.usecaseQuery.GetMember(code);
+      const member: IMember = await this.usecaseQuery.GetMember(code);
 
       if (!member) {
         console.error('[member][http_handler][Error]: Member not found');
         response.status(StatusCodes.NOT_FOUND).send({ message: 'Member not found', code: StatusCodes.NOT_FOUND });
+        return;
       }
 
       const borrowRecords: IBorrowRecord[] = await this.usecaseBookQuery.GetBorrowRecords(member.id);
@@ -68,11 +69,12 @@ async addMember(request: Request, response: Response): Promise<void> {
       const member: IMember = request.body;
 
       // check if member already exists
-      const data = await this.usecaseQuery.GetMember(member.code);
+      const data: IMember = await this.usecaseQuery.GetMember(member.code);
 
       if (data) {
         console.error('[member][http_handler][Error]: Member already exists');
         response.status(StatusCodes.BAD_REQUEST).send({ message: 'Member already exists', code: StatusCodes.BAD_REQUEST });
+        return;
       }
 
       await this.usecaseCommand.AddMember(member);
@@ -89,14 +91,16 @@ async addMember(request: Request, response: Response): Promise<void> {
 
       if (!code) {
         response.status(StatusCodes.BAD_REQUEST).send({ message: 'Code is required', code: StatusCodes.BAD_REQUEST });
+        return;
       }
 
       // check if member exists
-      const data = await this.usecaseQuery.GetMember(code);
+      const data: IMember = await this.usecaseQuery.GetMember(code);
 
       if (!data) {
         console.error('[member][http_handler][Error]: Member not found');
         response.status(StatusCodes.NOT_FOUND).send({ message: 'Member not found', code: StatusCodes.NOT_FOUND });
+        return;
       }
 
       const member: IMember = request.body;
@@ -109,4 +113,3 @@ async addMember(request: Request, response: Response): Promise<void> {
     }
   }
 }
-
