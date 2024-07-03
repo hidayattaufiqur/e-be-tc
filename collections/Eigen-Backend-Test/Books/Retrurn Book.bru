@@ -1,0 +1,21 @@
+meta {
+  name: Retrurn Book
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{dev}}/api/books/:bookCode/borrow
+  body: json
+  auth: none
+}
+
+params:path {
+  bookCode: SHR-1
+}
+
+body:json {
+  {
+    "memberCode": "M001"
+  }
+}
