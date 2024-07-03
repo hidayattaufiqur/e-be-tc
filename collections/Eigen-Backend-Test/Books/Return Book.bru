@@ -1,21 +1,21 @@
 meta {
-  name: Retrurn Book
+  name: Return Book
   type: http
   seq: 7
 }
 
 post {
-  url: {{dev}}/api/books/:bookCode/borrow
+  url: {{dev}}/api/books/:bookCode/return
   body: json
   auth: none
 }
 
 params:path {
-  bookCode: SHR-1
+  bookCode: TW-11
 }
 
 body:json {
   {
-    "memberCode": "M001"
+    "memberCode": "M002"
   }
 }

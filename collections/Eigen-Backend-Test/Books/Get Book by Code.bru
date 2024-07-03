@@ -5,7 +5,11 @@ meta {
 }
 
 get {
-  url: {{dev}}/api/books/HOB-11
+  url: {{dev}}/api/books/:code
   body: none
   auth: none
+}
+
+params:path {
+  code: HOB-83
 }
