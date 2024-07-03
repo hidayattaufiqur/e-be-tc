@@ -10,7 +10,7 @@
     <!-- can add a field of penalty of type date in the member table -->
 
 - Member returns the book with conditions
-    - [ ]  The returned book is a book that the member has borrowed
+    - [x]  The returned book is a book that the member has borrowed
     - [x]  If the book is returned after more than 7 days, the member will be subject to a penalty. Member with penalty cannot able to borrow the book for 3 days
 - Check the book
     - [x]  Shows all existing books and quantities
@@ -23,3 +23,4 @@
     - [ ] add more tests
     - [ ] add more swagger docs
     - [ ] deploy 
+    - [ ] edit readme
