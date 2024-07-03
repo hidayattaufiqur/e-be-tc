@@ -199,4 +199,48 @@ describe('HttpHandler', () => {
       expect(res.send).toHaveBeenCalledWith({ message: 'Internal server error', code: StatusCodes.INTERNAL_SERVER_ERROR });
     });
   });
+
+  describe('getBooks', () => {
+    it('should return all books', async () => {
+      const books: IBook[] = [{ code: 'JK-45', title: 'Harry Potter', author: 'J.K Rowling', stock: 1 }, { code: 'JK-46', title: 'Harry Potter and the Sorcerer\'s Stone', author: 'J.K Rowling', stock: 1 }];
+
+      mockUsecaseQuery.GetBooks.mockResolvedValueOnce(books);
+
+      await httpHandler.getBooks(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(StatusCodes.OK);
+      expect(res.send).toHaveBeenCalledWith({ message: 'Books retrieved successfully', code: StatusCodes.OK, data: books });
+    });
+
+    it('should return 500 if there is an error', async () => {
+      mockUsecaseQuery.GetBooks.mockRejectedValueOnce(new Error('Test Error'));
+
+      await httpHandler.getBooks(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(res.send).toHaveBeenCalledWith({ message: 'Internal server error', code: StatusCodes.INTERNAL_SERVER_ERROR });
+    });
+  });
+
+  describe('getInStockBooks', () => {
+    it('should return all in stock books', async () => {
+      const books: IBook[] = [{ code: 'JK-45', title: 'Harry Potter', author: 'J.K Rowling', stock: 1 }, { code: 'JK-46', title: 'Harry Potter and the Sorcerer\'s Stone', author: 'J.K Rowling', stock: 1 }];
+
+      mockUsecaseQuery.GetInStockBooks.mockResolvedValueOnce(books);
+
+      await httpHandler.getInStockBooks(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(StatusCodes.OK);
+      expect(res.send).toHaveBeenCalledWith({ message: 'Books retrieved successfully', code: StatusCodes.OK, data: books });
+    });
+
+    it('should return 500 if there is an error', async () => {
+      mockUsecaseQuery.GetInStockBooks.mockRejectedValueOnce(new Error('Test Error'));
+
+      await httpHandler.getInStockBooks(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(res.send).toHaveBeenCalledWith({ message: 'Internal server error', code: StatusCodes.INTERNAL_SERVER_ERROR });
+    });
+  });
 });
