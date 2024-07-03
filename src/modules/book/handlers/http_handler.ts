@@ -3,6 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 import { IUsecaseQuery, IUsecaseCommand } from '../book';
 import { IUsecaseQuery as IUsecaseMemberQuery, IUsecaseCommand as IUsecaseMemberCommand } from '../../member/member';
 import { IBook, IBorrowRecord } from '../models/book';
+import { IMember } from '../../member/models/member';
 
 export default class HttpHandler {
   private usecaseQuery: IUsecaseQuery;
@@ -45,7 +46,7 @@ export default class HttpHandler {
       }
 
       // check if book exists
-      const data = await this.usecaseQuery.GetBook(bookCode);
+      const data: IBook = await this.usecaseQuery.GetBook(bookCode);
 
       if (!data) {
         console.error('[book][http_handler][Error]: Stock is not available');
@@ -53,7 +54,7 @@ export default class HttpHandler {
         return;
       }
 
-      const memberData = await this.usecaseMemberQuery.GetMember(memberCode);
+      const memberData: IMember = await this.usecaseMemberQuery.GetMember(memberCode);
       const isPenalized: Date = memberData.penalized_at;
 
       if (isPenalized) { // check if member is penalized and if so, check if the penalized date is less than 3 days ago
@@ -96,7 +97,7 @@ export default class HttpHandler {
         return;
       }
 
-      const data = await this.usecaseQuery.GetBorrowRecord(parseInt(bookId), parseInt(memberId));
+      const data: IBorrowRecord = await this.usecaseQuery.GetBorrowRecord(parseInt(bookId), parseInt(memberId));
 
       if (!data) {
         console.error('[book][http_handler][Error]: Member has not borrowed the book');
@@ -104,12 +105,12 @@ export default class HttpHandler {
         return;
       }
 
-      if (data[3]) {
+      if (data.moreThanSevenDays) {
         console.error('[book][http_handler][Error]: Member will be penalized in 3 days due to the late return');
-        let memberData = await this.usecaseMemberQuery.GetMemberById(parseInt(memberId));
-        memberData[3] = new Date();
+        let memberData: IMember = await this.usecaseMemberQuery.GetMemberById(parseInt(memberId));
+        memberData.penalized_at = new Date();
 
-        await this.usecaseMemberCommand.UpdateMember(memberData, memberData[0]);
+        await this.usecaseMemberCommand.UpdateMember(memberData, memberData.code);
       }
 
       const bookData = await this.usecaseQuery.GetBookById(parseInt(bookId));
@@ -123,7 +124,7 @@ export default class HttpHandler {
 
   async getBook(request: Request, response: Response): Promise<void> {
     try {
-      const book = await this.usecaseQuery.GetBook(request.params.code);
+      const book: IBook = await this.usecaseQuery.GetBook(request.params.code);
 
       if (!book) {
         console.error('[book][http_handler][Error]: Book not found');
@@ -139,7 +140,7 @@ export default class HttpHandler {
 
   async getBooks(_request: Request, response: Response): Promise<void> {
     try {
-      const books = await this.usecaseQuery.GetBooks();
+      const books: IBook[] = await this.usecaseQuery.GetBooks();
 
       response.status(StatusCodes.OK).send({ message: 'Books retrieved successfully', code: StatusCodes.OK, data: books });
     } catch (error) {
@@ -152,7 +153,7 @@ export default class HttpHandler {
       const book: IBook = request.body;
 
       // check if book already exists
-      const data = await this.usecaseQuery.GetBook(book.code);
+      const data: IBook = await this.usecaseQuery.GetBook(book.code);
 
       if (data) {
         console.error('[book][http_handler][Error]: Book already exists');
@@ -178,7 +179,7 @@ export default class HttpHandler {
       }
 
       // check if book exists
-      const data = await this.usecaseQuery.GetBook(code);
+      const data: IBook = await this.usecaseQuery.GetBook(code);
 
       if (!data) {
         console.error('[book][http_handler][Error]: Book not found');
@@ -202,14 +203,16 @@ export default class HttpHandler {
 
       if (!code) {
         response.status(StatusCodes.BAD_REQUEST).send({ message: 'Code is required', code: StatusCodes.BAD_REQUEST });
+        return;
       }
 
       // check if book exists
-      const data = await this.usecaseQuery.GetBook(code);
+      const data: IBook = await this.usecaseQuery.GetBook(code);
 
       if (!data) {
         console.error('[book][http_handler][Error]: Book not found');
         response.status(StatusCodes.NOT_FOUND).send({ message: 'Book not found', code: StatusCodes.NOT_FOUND });
+        return;
       }
 
       await this.usecaseCommand.RemoveBook(code);
