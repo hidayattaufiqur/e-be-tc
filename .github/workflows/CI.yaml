@@ -52,14 +52,14 @@ jobs:
           GCE_HOST: ${{ secrets.GCE_HOST }}
           GCE_USERNAME: ${{ secrets.GCE_USERNAME }}
         run: |
-          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r env ${GCE_USERNAME}@${GCE_HOST}:/home/${GCE_USERNAME}/Fun/Projects/e-bc-tc
+          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r env ${GCE_USERNAME}@${GCE_HOST}:/home/${GCE_USERNAME}/Fun/Projects/e-be-tc
 
       - name: Running deployment script 🚀
         env:
           GCE_HOST: ${{ secrets.GCE_HOST }}
           GCE_USERNAME: ${{ secrets.GCE_USERNAME }}
         run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${GCE_USERNAME}@${GCE_HOST} "chmod +x /home/${GCE_USERNAME}/Fun/Projects/e-bc-tc/deploy.sh && /home/${GCE_USERNAME}/Fun/Projects/e-bc-tc/deploy.sh"
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${GCE_USERNAME}@${GCE_HOST} "chmod +x /home/${GCE_USERNAME}/Fun/Projects/e-be-tc/deploy.sh && /home/${GCE_USERNAME}/Fun/Projects/e-be-tc/deploy.sh"
       - name: Clean up SSH key ✔
         if: always()
         run: rm -f ~/.ssh/id_rsa
