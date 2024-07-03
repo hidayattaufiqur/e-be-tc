@@ -1,0 +1,65 @@
+name: Deploy to GCE 🚀
+
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
+    branches:
+      - "main"
+
+jobs:
+  jest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set node
+        uses: actions/setup-node@v3
+        with:
+          node-version: lts/*
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Lint
+        run: npm test 
+
+  deploy:
+    needs: jest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up SSH key ❄️
+        env:
+          GCE_SSH_KEY: ${{ secrets.GCE_SSH_KEY }}
+          GCE_HOST: ${{ secrets.GCE_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "${GCE_SSH_KEY}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan ${GCE_HOST} >> ~/.ssh/known_hosts
+
+      - name: Create .env file dynamically 🖋
+        env:
+          ENV: ${{ secrets.ENV }}
+        run: |
+          echo "${ENV}" >> env
+
+      - name: Copy files to remote server 🚛
+        env:
+          GCE_HOST: ${{ secrets.GCE_HOST }}
+          GCE_USERNAME: ${{ secrets.GCE_USERNAME }}
+        run: |
+          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r env ${GCE_USERNAME}@${GCE_HOST}:/home/${GCE_USERNAME}/Fun/Projects/e-bc-tc/
+
+      - name: Running deployment script 🚀
+        env:
+          GCE_HOST: ${{ secrets.GCE_HOST }}
+          GCE_USERNAME: ${{ secrets.GCE_USERNAME }}
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${GCE_USERNAME}@${GCE_HOST} "chmod +x /home/${GCE_USERNAME}/Fun/Projects/e-bc-tc/deploy.sh && /home/${GCE_USERNAME}/Fun/Projects/e-bc-tc/deploy.sh"
+      - name: Clean up SSH key ✔
+        if: always()
+        run: rm -f ~/.ssh/id_rsa
