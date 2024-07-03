@@ -1,24 +1,43 @@
 # e-be-tc
-This is a simple book exchange system that allows members to borrow books and return them after a certain period of time. This uses DDD and CQRS patterns.
-The system is build using Typescript, Express, and PostgreSQL. 
+This is a simple book exchange system that allows members to borrow books and return them after a certain period of time.
+The system is build using Typescript, Express, and PostgreSQL and adheres to the Domain-Driven Design (DDD) and Command Query Responsibility Segregation (CQRS) patterns.
+
 Other tools used: Swagger and Bruno for API docs, Nix and Direnv for development environment, Jest for unit testing, and Nodemon for automatic restarting of the server.
 
 ## How to run the server
-- Normally 
+### Normally 
 1. Clone the repo
 2. Install dependencies
 3. Create a .env file by copying the .env.example file and fill in the required fields
 4. Run the command `npm run dev` to start the server locally
 5. Open your browser and navigate to `http://localhost:5000/api-docs` to view the Swagger documentation or if you're using Bruno, you can open the collection provided in the `collections` folder.
 
-- Using Nix
+### Using Nix
 1. Clone the repo
 2. run `direnv allow` to allow direnv to load the .envrc file
-3. run `nix develop` to enter the nix shell or if direnv enabled environment will be prepared for you automagically. 
+3. run `nix develop` to enter the nix shell or if direnv is enabled, environment will be prepared for you automagically. 
 4. run `npm run dev` to start the server locally
 
 ## How to run the tests
-1. run `npm run test` to run the tests
+1. run `npm run test` to run the tests$
+
+## Provided endpoints for each tasks
+1. Members can borrow books with conditions
+```http
+POST /api/books/:bookCode/borrow
+```
+2. Member returns the book with conditions
+```http
+POST /api/books/:bookCode/return
+```
+3. Check list of books with conditions
+```http
+GET /api/books/in-stock
+```
+4. Check list of members with conditions
+```http
+GET /api/members
+```
 
 ## TODO: 
 - Members can borrow books with conditions
@@ -28,7 +47,6 @@ Other tools used: Swagger and Bruno for API docs, Nix and Direnv for development
     <!-- just see if book stock > 0 -->
     - [x]  Member is currently not being penalized
     <!-- can add a field of penalty of type date in the member table -->
-
 - Member returns the book with conditions
     - [x]  The returned book is a book that the member has borrowed
     - [x]  If the book is returned after more than 7 days, the member will be subject to a penalty. Member with penalty cannot able to borrow the book for 3 days
@@ -38,9 +56,8 @@ Other tools used: Swagger and Bruno for API docs, Nix and Direnv for development
 - Member check
     - [x]  Shows all existing members
     - [x]  The number of books being borrowed by each member
-
 - Others
-    - [ ] add more tests
+    - [x] add more tests
     - [x] add more swagger docs
     - [ ] deploy 
     - [x] edit readme
