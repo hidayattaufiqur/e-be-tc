@@ -7,6 +7,7 @@ git add .
 git stash
 git pull
 git stash pop
+git add .
 
 echo "injecting .env..."
 mv env .env
