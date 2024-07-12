@@ -11,6 +11,7 @@ import { QueryUsecase as MemberQueryUsecase } from './modules/member/usecases/qu
 import { CommandUsecase as MemberCommandUsecase } from './modules/member/usecases/command_usecase';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './pkg/swagger/swagger';
+import { metricsRegistry, requestMetricsMiddleware } from './pkg/prometheus/metrics';
 
 export default class App { 
   public express: express.Application; 
@@ -36,6 +37,9 @@ export default class App {
     };
 
     this.express.use(cors(corsOptions));
+    
+    this.express.use(requestMetricsMiddleware);
+
     await Postgres.init();
     await Postgres.createTables(); 
   }
@@ -44,10 +48,16 @@ export default class App {
     this.express.get('/', (_req, res) => {
       res.send('Hello World!');
     });
- 
+     
     // setup Swagger
     this.express.use('/api-docs', swaggerUi.serve)
     this.express.get('/api-docs', swaggerUi.setup(swaggerSpec));
+
+    // setup prometheus metrics 
+    this.express.get('/metrics', async (_req, res) => {
+      res.setHeader('Content-Type', metricsRegistry.contentType);
+      res.send(await metricsRegistry.metrics());
+    });
 
     // instantiate usecases
     const bookQueryUsecase = new BookQueryUsecase();
