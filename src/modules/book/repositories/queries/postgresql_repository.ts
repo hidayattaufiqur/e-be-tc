@@ -9,8 +9,6 @@ export class PostgresRepository implements IPostgresRepositoryQuery {
       [id]
     );
 
-    await closeClient();
-
     return result[0];
   }
 
@@ -23,8 +21,6 @@ export class PostgresRepository implements IPostgresRepositoryQuery {
       `,
       [memberId]
     );
-
-    await closeClient();
 
     return result;
   }
@@ -39,8 +35,6 @@ export class PostgresRepository implements IPostgresRepositoryQuery {
       [bookId, memberId]
     );
 
-    await closeClient();
-
     return result[0];
   }
 
@@ -48,8 +42,6 @@ export class PostgresRepository implements IPostgresRepositoryQuery {
     const result = await query<IBook[]>(
       'SELECT * FROM books'
     );
-
-    await closeClient();
 
     return result;
   }
@@ -59,8 +51,6 @@ export class PostgresRepository implements IPostgresRepositoryQuery {
       'SELECT * FROM books WHERE stock > 0' // only return books that are in stock
     );
 
-    await closeClient();
-
     return result;
   }
 
@@ -69,8 +59,6 @@ export class PostgresRepository implements IPostgresRepositoryQuery {
       'SELECT * FROM books WHERE code = $1',
       [code]
     );
-
-    await closeClient();
 
     return result[0];
   }

@@ -9,8 +9,6 @@ export class PostgresRepository implements IPostgresRepositoryQuery {
       [id]
     );
 
-    await closeClient();
-
     return result[0];
   }
 
@@ -20,8 +18,6 @@ export class PostgresRepository implements IPostgresRepositoryQuery {
       [code]
     );
 
-    await closeClient();
-
     return result[0];
   }
 
@@ -29,8 +25,6 @@ export class PostgresRepository implements IPostgresRepositoryQuery {
     const result = await query<IMember[]>(
       'SELECT * FROM members'
     );
-
-    await closeClient();
 
     return result;
   }

@@ -9,7 +9,6 @@ export class PostgresRepository implements IPostgresRepositoryCommand {
       [member.code, member.name]
     );
 
-    await closeClient();
   }
 
   public async UpdateOneMember(member: IMember, code: string): Promise<void> {
@@ -18,6 +17,5 @@ export class PostgresRepository implements IPostgresRepositoryCommand {
       [code, member.name, member.penalized_at]
     );
 
-    await closeClient();
   }
 }

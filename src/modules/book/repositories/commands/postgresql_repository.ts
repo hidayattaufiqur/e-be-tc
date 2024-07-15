@@ -9,7 +9,6 @@ export class PostgresRepository implements IPostgresRepositoryCommand {
       [memberId, bookId]
     );
 
-    await closeClient();
   }
 
   public async DeleteBorrowRecord(bookId: number, memberId: number): Promise<void> {
@@ -18,7 +17,6 @@ export class PostgresRepository implements IPostgresRepositoryCommand {
       [memberId, bookId]
     );
 
-    await closeClient();
   }
 
   public async InsertOneBook(book: IBook): Promise<void> {
@@ -26,8 +24,7 @@ export class PostgresRepository implements IPostgresRepositoryCommand {
       'INSERT INTO books (code, title, author, stock) VALUES ($1, $2, $3, $4)',
       [book.code, book.title, book.author, book.stock]
     );
-
-    await closeClient();
+    
   }
 
   public async UpdateOneBook(book: IBook, code: string): Promise<void> {
@@ -36,7 +33,6 @@ export class PostgresRepository implements IPostgresRepositoryCommand {
       [book.title, book.author, book.stock, code]
     );
 
-    await closeClient();
   }
 
   public async DeleteOneBook(code: string): Promise<void> {
@@ -49,7 +45,7 @@ export class PostgresRepository implements IPostgresRepositoryCommand {
 
     if (result[0] > 0) {
       console.error('[book][postgresql_repository][Error]: Book is being borrowed');
-      await closeClient();
+      
       throw new Error('Book is being borrowed');
     }
 
@@ -58,6 +54,5 @@ export class PostgresRepository implements IPostgresRepositoryCommand {
       [code]
     );
 
-    await closeClient();
   }
 }
