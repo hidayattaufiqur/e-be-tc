@@ -10,20 +10,20 @@ client.collectDefaultMetrics({ register: metrics });
 const httpRequestCounter = new client.Counter({
   name: 'http_requests_total',
   help: 'Total number of HTTP requests',
-  labelNames: ['method', 'route', 'status_code']
+  labelNames: ['method', 'route', 'status_code', 'http_version']
 });
 
 const httpRequestDuration = new client.Histogram({
   name: 'http_request_duration_seconds',
   help: 'Duration of HTTP requests in seconds',
-  labelNames: ['method', 'route', 'status_code'],
+  labelNames: ['method', 'route', 'status_code', 'http_version'],
   buckets: [0.1, 0.3, 0.5, 1, 1.5]
 });
 
 const errorCounter = new client.Counter({
   name: 'http_errors_total',
   help: 'Total number of HTTP errors',
-  labelNames: ['method', 'route', 'status_code']
+  labelNames: ['method', 'route', 'status_code', 'http_version']
 });
 
 const concurrentUsersGauge = new client.Gauge({
@@ -42,11 +42,12 @@ const requestMetricsMiddleware = (req, res, next) => {
     const statusCode = res.statusCode;
     const route = req.path;
     const method = req.method;
-    httpRequestCounter.inc({ method, route, status_code: statusCode });
-    end({ method, route, status_code: statusCode });
+    const http_version = req.headers['x-protocol'] || req.httpVersion;
+    httpRequestCounter.inc({ method, route, status_code: statusCode, http_version: http_version });
+    end({ method, route, status_code: statusCode, http_version: http_version });
 
     if (statusCode >= 400) {
-      errorCounter.inc({ method, route, status_code: statusCode });
+      errorCounter.inc({ method, route, status_code: statusCode, http_version });
     };
     concurrentUsersGauge.dec();
   });
