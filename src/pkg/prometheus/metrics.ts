@@ -42,7 +42,7 @@ const requestMetricsMiddleware = (req, res, next) => {
     const statusCode = res.statusCode;
     const route = req.path;
     const method = req.method;
-    const http_version = req.headers['x-protocol'] || req.httpVersion;
+    const http_version = req.headers['x-protocol'];
     httpRequestCounter.inc({ method, route, status_code: statusCode, http_version: http_version });
     end({ method, route, status_code: statusCode, http_version: http_version });
 
